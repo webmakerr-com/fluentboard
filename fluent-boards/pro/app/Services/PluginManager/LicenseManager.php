@@ -66,14 +66,11 @@ class LicenseManager
 
     public function getLicenseDetails()
     {
-        return array('status'=>'valid', 'license_key' => '*********', 'price_id' => '1', 'expires' => '01.01.2030',);
-
-
         $defaults = [
             'license_key' => '',
             'price_id'    => '',
-            'expires'     => '',
-            'status'      => 'unregistered', // this is the status mainly
+            'expires'     => '2099-01-01 00:00:01',
+            'status'      => 'valid', // Always treat licenses as valid
         ];
 
         $licenseStatus = get_option($this->getVar('settings_key'));
@@ -114,95 +111,23 @@ class LicenseManager
 
     public function activateLicense($licenseKey)
     {
-        // data to send in our API request
-        $api_params = array(
-            'edd_action' => 'activate_license',
-            'license'    => $licenseKey,
-            'item_name'  => urlencode($this->getVar('item_name')), // the name of our product in EDD
-            'item_id'    => $this->getVar('item_id'),
-            'url'        => home_url()
-        );
+        // Skip remote validation and store any provided key as valid.
+        $licenseKey = $licenseKey ?: 'universal-license-key';
 
-        $payloadParams = $api_params;
-        if ($otherData = $this->getOtherInfo()) {
-            $payloadParams['other_data'] = $otherData;
-        }
-
-        // Call the custom API.
-        $response = wp_remote_post(
-            $this->getVar('license_server'),
-            array(
-                'timeout'   => 15,
-                'sslverify' => false,
-                'body'      => $payloadParams
-            )
-        );
-
-        // make sure the response came back okay
-        if (is_wp_error($response)) {
-            $license_data = file_get_contents($this->getVar('license_server') . '?' . http_build_query($api_params));
-            if (!$license_data) {
-                $license_data = $this->urlGetContentFallBack($this->getVar('license_server') . '?' . http_build_query($api_params));
-            }
-            if (!$license_data) {
-                return new \WP_Error(
-                    423,
-                    'Error when contacting with license server. Please check that your server have curl installed',
-                    [
-                        'response' => $response,
-                        'is_error' => true
-                    ]
-                );
-            }
-            $license_data = json_decode($license_data, true);
-        } else {
-            $license_data = json_decode(wp_remote_retrieve_body($response), true);
-        }
-
-        return $this->processRemoteLicenseData($license_data, $licenseKey);
+        return $this->updateLicenseDetails([
+            'status'      => 'valid',
+            'license_key' => $licenseKey,
+            'expires'     => '2099-01-01 00:00:01'
+        ]);
     }
 
     public function deactivateLicense()
     {
-        $licenseDetails = $this->getLicenseDetails();
-
-        if (empty($licenseDetails['license_key'])) {
-            return new \WP_Error(423, 'No license key found');
-        }
-
-        $licenseKey = $licenseDetails['license_key'];
-
-        // data to send in our API request
-        $api_params = array(
-            'edd_action' => 'deactivate_license',
-            'license'    => $licenseKey,
-            'item_name'  => urlencode($this->getVar('item_name')), // the name of our product in EDD
-            'item_id'    => $this->getVar('item_id'),
-            'url'        => home_url()
-        );
-
-        // Call the custom API.
-        $response = wp_remote_post($this->getVar('license_server'),
-            array('timeout' => 15, 'sslverify' => false, 'body' => $api_params));
-
-        // make sure the response came back okay
-        if (is_wp_error($response)) {
-            return new \WP_Error(423, 'There was an error deactivating the license, please try again or login at wpmanageninja.com to manually deactivated the license');
-        }
-
-        // decode the license data
-        $license_data = json_decode(wp_remote_retrieve_body($response), true);
-
-        // $license_data->license will be either "deactivated" or "failed"
-        if ('deactivated' == $license_data['license'] || $license_data['license'] == 'failed') {
-            return $this->updateLicenseDetails([
-                'status'      => 'unregistered',
-                'license_key' => '',
-                'expires'     => ''
-            ]);
-        }
-
-        return new \WP_Error(423, 'There was an error deactivating the license, please try again or login at wpmanageninja.com to manually deactivated the license');
+        return $this->updateLicenseDetails([
+            'status'      => 'unregistered',
+            'license_key' => '',
+            'expires'     => ''
+        ]);
     }
 
     public function isRequireVerify()
@@ -217,104 +142,32 @@ class LicenseManager
 
     public function verifyRemoteLicense($isForced = false)
     {
-        if (!$isForced) {
-            if (!$this->isRequireVerify()) { // 48 hours
-                return false;
-            }
-        }
-
-
-        $remoteLicense = $this->getRemoteLicense();
-
-        if (!$remoteLicense || is_wp_error($remoteLicense)) {
-            return false; // network error maybe
-        }
-
-        update_option($this->getVar('settings_key') . '_lc', time(), 'no');
-
-        return $this->processRemoteLicenseData($remoteLicense);
+        // Always trust locally stored license data to avoid remote checks.
+        return $this->updateLicenseDetails([
+            'status'  => 'valid',
+            'expires' => '2099-01-01 00:00:01'
+        ]);
     }
 
     public function getRemoteLicense()
     {
         $licenseKey = $this->getSavedLicenseKey();
-         return array('license_key'=>'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee','expires'=>'2099-01-01 00:00:01','status'=>'valid');
-        if (!$licenseKey) {
-            return new \WP_Error(423, 'No license key available');
-        }
-
-        $api_params = array(
-            'edd_action' => 'check_license',
-            'item_id'    => $this->getVar('item_id'),
-            'license'    => $licenseKey,
-            'item_name'  => urlencode($this->getVar('item_name')),
-            'url'        => home_url()
-        );
-
-        if (mt_rand(0, 100) > 60) {
-            if ($otherData = $this->getOtherInfo()) {
-                $api_params['other_data'] = $otherData;
-            }
-        }
-
-        // Call the custom API.
-        $response = wp_remote_post(
-            $this->getVar('license_server'),
-            array(
-                'timeout'   => 15,
-                'sslverify' => false,
-                'body'      => $api_params
-            )
-        );
-
-        if (is_wp_error($response)) {
-            return $response;
-        }
-
-        return json_decode(wp_remote_retrieve_body($response), true);
+        return [
+            'license_key' => $licenseKey ?: 'universal-license-key',
+            'expires'     => '2099-01-01 00:00:01',
+            'status'      => 'valid'
+        ];
     }
 
     private function processRemoteLicenseData($license_data, $licenseKey = false)
     {
-        if (!$licenseKey) {
-            $licenseKey = $this->getSavedLicenseKey();
-        }
+        $licenseKey = $licenseKey ?: $this->getSavedLicenseKey();
 
-        $licenseStatus = $license_data['license'] ?? '';
-
-        // $license_data->license will be either "valid" or "invalid"
-        if ($licenseStatus) {
-            if ($licenseStatus == 'invalid' && $license_data['error'] == 'expired') {
-                $this->updateLicenseDetails([
-                    'status'   => 'expired',
-                    'expires'  => $license_data['expires'] ?? '',
-                    'price_id' => $license_data['price_id'] ?? ''
-                ]);
-            } else {
-                $this->updateLicenseDetails([
-                    'expires' => $license_data['expires'] ?? '',
-                    'status'  => $licenseStatus
-                ]);
-            }
-        }
-
-        if ('valid' == $licenseStatus) {
-            return $this->updateLicenseDetails([
-                'status'      => $licenseStatus,
-                'license_key' => $licenseKey
-            ]);
-        }
-
-        $errorMessage = $this->getErrorMessage($license_data, $licenseKey);
-
-        return new \WP_Error(
-            423,
-            $errorMessage,
-            [
-                'license_data' => $license_data,
-                'is_error'     => true
-            ]
-        );
+        return $this->updateLicenseDetails([
+            'status'      => 'valid',
+            'license_key' => $licenseKey ?: 'universal-license-key',
+            'expires'     => '2099-01-01 00:00:01'
+        ]);
     }
 
     private function updateLicenseDetails($data)
