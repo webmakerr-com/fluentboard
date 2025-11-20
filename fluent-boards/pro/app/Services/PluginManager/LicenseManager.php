@@ -415,6 +415,10 @@ class LicenseManager
      */
     public function initUpdater()
     {
+        if (apply_filters('fluent_boards/disable_pro_update_check', true)) {
+            return;
+        }
+
         $licenseDetails = $this->getLicenseDetails();
 
         // setup the updater
