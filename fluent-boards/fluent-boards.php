@@ -27,6 +27,15 @@ define('FLUENT_BOARDS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('FLUENT_BOARDS_UPLOAD_DIR', 'fluent-boards');
 define('FLUENT_BOARDS_PRO_MIN_VERSION', '1.90');
 
+if (!defined('FLUENT_BOARDS_PRO')) {
+    define('FLUENT_BOARDS_PRO', 'fluent-boards-pro');
+    define('FLUENT_BOARDS_PRO_VERSION', '1.90');
+    define('FLUENT_BOARDS_PRO_DIR_FILE', FLUENT_BOARDS_DIR_FILE);
+    define('FLUENT_BOARDS_PRO_URL', FLUENT_BOARDS_PLUGIN_URL . 'pro/');
+    define('FLUENT_BOARDS_PRO_LIVE', true);
+    define('FLUENT_BOARDS_CORE_MIN_VERSION', '1.90');
+}
+
 define('FLUENT_BOARDS_DB_VERSION', '1.60'); // don't change if sync or db update not required
 
 require __DIR__ . '/vendor/autoload.php';
@@ -34,3 +43,21 @@ require __DIR__ . '/vendor/autoload.php';
 call_user_func(function ($bootstrap) {
     $bootstrap(__FILE__);
 }, require(__DIR__ . '/boot/app.php'));
+
+if (!defined('FLUENT_BOARDS_PRO_BOOTSTRAPPED')) {
+    define('FLUENT_BOARDS_PRO_BOOTSTRAPPED', true);
+
+    if (file_exists(FLUENT_BOARDS_PLUGIN_PATH . 'pro/vendor/autoload.php')) {
+        require FLUENT_BOARDS_PLUGIN_PATH . 'pro/vendor/autoload.php';
+    }
+
+    if (file_exists(FLUENT_BOARDS_PLUGIN_PATH . 'pro/app/Services/HelperInstaller.php')) {
+        (new \FluentBoardsPro\App\Services\HelperInstaller())->register();
+    }
+
+    if (file_exists(FLUENT_BOARDS_PLUGIN_PATH . 'pro/boot/app.php')) {
+        call_user_func(function ($bootstrap) {
+            $bootstrap(FLUENT_BOARDS_DIR_FILE);
+        }, require FLUENT_BOARDS_PLUGIN_PATH . 'pro/boot/app.php');
+    }
+}

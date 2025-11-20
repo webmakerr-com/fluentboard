@@ -12,7 +12,7 @@ class LicenseManager
 
     public function __construct()
     {
-        $this->pluginBaseName = 'fluent-boards-pro/fluent-boards-pro.php';
+        $this->pluginBaseName = plugin_basename(FLUENT_BOARDS_DIR_FILE);
         $urlBase = apply_filters('fluent_boards/app_url', admin_url('admin.php?page=fluent-boards#/'));
 
         $this->settings = [

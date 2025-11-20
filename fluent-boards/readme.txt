@@ -10,6 +10,8 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 The Simplest Project & Task Management Plugin Specifically Crafted for Agencies, Freelancers & Founders.
 
+This unified plugin bundles all FluentBoards Pro capabilities—install it once to access every feature without needing a separate add-on.
+
 == Description ==
 FluentBoards is a next-gen project management solution, designed to revolutionize your workflow with seamless organization, effortless communication, and unparalleled efficiency, ensuring you sweat less and achieve more!
 
