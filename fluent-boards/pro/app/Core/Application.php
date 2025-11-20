@@ -102,8 +102,19 @@ class Application implements ArrayAccess
 
         if (is_dir($this['path.config'])) {
             foreach (glob($this['path.config'] . '*.php') as $file) {
-                $data[basename($file, '.php')] = require_once($file);
+                $config = require $file;
+
+                // Skip invalid config files that don't return an array
+                if (!is_array($config)) {
+                    continue;
+                }
+
+                $data[basename($file, '.php')] = $config;
             }
+        }
+
+        if (!isset($data['app']) || !is_array($data['app'])) {
+            $data['app'] = [];
         }
 
         $data['app']['rest_namespace'] = $this->app->config->get('app.rest_namespace');
