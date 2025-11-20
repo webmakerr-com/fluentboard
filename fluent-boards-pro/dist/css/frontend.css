@@ -1,0 +1,96 @@
+.fbs_board_section_view .el-row.h-full {
+    max-height: calc(100vh - 190px);
+}
+
+
+body.el-popup-parent--hidden #wpadminbar {
+    z-index: 0 !important;
+}
+
+.fbs_full_screen_btn {
+    display: none !important;
+}
+
+.fluent_boards_frontend {
+    width: 100%;
+}
+.fbs_login_form {
+    max-width: 660px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #ffffff;
+    border: 1px solid #D6DAE1;
+    border-radius: 8px;
+    padding: 30px;
+    box-sizing: border-box;
+}
+.fbs_login_form .fbs_login_form_heading {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+.fbs_login_form *, .fbs_login_form *:before, .fbs_login_form *:after {
+    box-sizing: border-box;
+}
+.fbs_login_form #loginform {
+    display: flex;
+    row-gap: 20px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.fbs_login_form #loginform > p {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0;
+    gap: 8px;
+    width: 100%;
+}
+.fbs_login_form #loginform input:not([type=submit]):not([name=rememberme]) {
+    border-radius: 8px;
+    border: 1px solid #D6DAE1;
+    width: 100%;
+    display: block;
+    padding: 11px 15px;
+    line-height: 1.1;
+}
+.fbs_login_form #loginform input:not([type=submit]):not([name=rememberme]):focus {
+    box-shadow: none;
+    outline: none;
+    border-color: #6268F1;
+}
+.fbs_login_form #loginform label {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    color: #2F3448;
+}
+.fbs_login_form #loginform .login-remember label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.fbs_login_form #loginform .login-remember label input {
+    width: 15px;
+    height: 15px;
+    display: block;
+    margin: 0;
+    flex: none;
+}
+.fbs_login_form #loginform .login-remember,
+.fbs_login_form #loginform .login-submit {
+    width: calc(50% - 20px);
+}
+.fbs_login_form #loginform .login-submit {
+    align-items: flex-end;
+}
+.fbs_login_form #loginform .login-submit input[type="submit"] {
+    background: #6268F1;
+    font-size: 14px;
+    font-weight: 400;
+    border: none;
+    cursor: pointer;
+    color: #ffffff;
+    border-radius: 8px;
+    display: block;
+    padding: 12px 20px;
+}
