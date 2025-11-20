@@ -33,7 +33,9 @@ $router->withPolicy('BoardUserPolicy')->group(function ($router) {
     $router->put('update-dashboard-view-settings', 'OptionsController@updateDashboardViewSettings');
     $router->get('get-dashboard-view-settings', 'OptionsController@getDashboardViewSettings');
     $router->get('projects/reports', 'ReportController@getBoardReports');
+    $router->post('projects/reports', 'ReportController@getBoardReports');
     $router->get('reports/timesheet', 'ReportController@getTimeSheetReport');
+    $router->post('reports/timesheet', 'ReportController@getTimeSheetReport');
 
 });
 
